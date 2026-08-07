@@ -21,6 +21,7 @@ const router = express.Router();
 
 router.post("/", protect, upload.single("image"), createProduct);
 router.get("/", getProducts);
+
 router.get("/my-listings", protect, getMyListings);
 router.get("/reminders", protect, getReminders);
 router.get("/featured-deals", getFeaturedDeals);
