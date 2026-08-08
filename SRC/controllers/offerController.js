@@ -86,7 +86,7 @@ export const createOffer = asyncHandler( async (req, res) => {
     city: city || shopOwner.city || "",
     expiresAt: finalExpiry,
     usageLimit: usageLimit ? Number(usageLimit) : null,
-    minOrderValue: minOrderValue ? Number(minOrderValue) : 0,
+    minOrderValue: minOrderValue ? Number(minOrderValue)  :  0,
   });
 
   const populatedOffer = await Offer.findById(newOffer._id)
