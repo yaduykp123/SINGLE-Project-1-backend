@@ -83,7 +83,7 @@ export const createOffer = asyncHandler( async (req, res) => {
     shopOwner: shopOwner._id,
     products: products.map((p) => p._id),
     location: { type: "Point", coordinates },
-    city: city || shopOwner.city || "",
+    city: city  ||  shopOwner.city  ||  "",
     expiresAt: finalExpiry,
     usageLimit: usageLimit ? Number(usageLimit) : null,
     minOrderValue: minOrderValue ? Number(minOrderValue)  :  0,
