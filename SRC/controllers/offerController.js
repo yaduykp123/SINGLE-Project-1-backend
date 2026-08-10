@@ -79,7 +79,7 @@ export const createOffer = asyncHandler( async (req, res) => {
     title,
     description,
     discountPercentage: Number(discountPercentage),
-    category: category || "All",
+    category: category  ||  "All",
     shopOwner: shopOwner._id,
     products: products.map((p) => p._id),
     location: { type: "Point", coordinates },
