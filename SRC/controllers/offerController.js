@@ -75,7 +75,7 @@ export const createOffer = asyncHandler( async (req, res) => {
     coordinates = [Number(shopOwner.longitude), Number(shopOwner.latitude)];
   }
 
-  const newOffer = await Offer.create({
+  const newOffer  =  await Offer.create({
     title,
     description,
     discountPercentage: Number(discountPercentage),
