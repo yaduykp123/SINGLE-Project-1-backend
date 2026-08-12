@@ -72,7 +72,7 @@ export const createOffer = asyncHandler( async (req, res) => {
   if (shopOwner.location?.coordinates?.length === 2 && (shopOwner.location.coordinates[0] !== 0 || shopOwner.location.coordinates[1] !== 0)) {
     coordinates = shopOwner.location.coordinates;
   } else if (shopOwner.longitude && shopOwner.latitude) {
-    coordinates = [Number(shopOwner.longitude), Number(shopOwner.latitude)];
+    coordinates  =  [Number(shopOwner.longitude), Number(shopOwner.latitude)];
   }
 
   const newOffer  =  await Offer.create({
