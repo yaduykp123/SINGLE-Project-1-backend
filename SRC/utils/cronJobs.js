@@ -11,11 +11,11 @@ import { processBatchExpiryChecks } from "../services/batchExpiryService.js";
 
 const activeCronTasks = [];
 
-export const stopCronJobs = () => {
+export const stopCronJobs  =  ()  =>  {
   activeCronTasks.forEach((task) => {
-    try {
+    try  {
       task.stop();
-    } catch {
+    }  catch  {
       // Ignore
     }
   });
