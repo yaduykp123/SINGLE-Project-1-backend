@@ -5,7 +5,7 @@ import Offer from "../models/OfferSchema.js";
 import User from "../models/userSchema.js";
 import Notification from "../models/NotificationSchema.js";
 import { sendExpiryReminder } from "./sendEmail.js";
-import { sendEmail } from "../config/nodemailer.js";
+
 import { getIo } from "./socket.js";
 import { processBatchExpiryChecks } from "../services/batchExpiryService.js";
 
