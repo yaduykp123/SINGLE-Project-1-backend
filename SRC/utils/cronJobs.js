@@ -9,7 +9,7 @@ import { sendEmail } from "../config/nodemailer.js";
 import { getIo } from "./socket.js";
 import { processBatchExpiryChecks } from "../services/batchExpiryService.js";
 
-const activeCronTasks = [];
+const activeCronTasks  =  [];
 
 export const stopCronJobs  =  ()  =>  {
   activeCronTasks.forEach((task) => {
