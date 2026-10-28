@@ -1,3 +1,4 @@
+import mongoose from "mongoose";
 import cron from "node-cron";
 import Product from "../models/productSchema.js";
 import Offer from "../models/OfferSchema.js";
@@ -6,13 +7,36 @@ import Notification from "../models/NotificationSchema.js";
 import { sendExpiryReminder } from "./sendEmail.js";
 import { sendEmail } from "../config/nodemailer.js";
 import { getIo } from "./socket.js";
+import { processBatchExpiryChecks } from "../services/batchExpiryService.js";
+
+const activeCronTasks = [];
+
+export const stopCronJobs = () => {
+  activeCronTasks.forEach((task) => {
+    try {
+      task.stop();
+    } catch {
+      // Ignore
+    }
+  });
+  activeCronTasks.length = 0;
+  console.log("All background cron jobs stopped.");
+};
 
 export const startCronJobs = () => {
   // -------------------------------------------------------------
-  // Cron Job 1: Daily Product Expiry Reminders (Runs daily at 9:00 AM)
+  // Cron Job 1: Daily Product & Batch Expiry Reminders (Runs daily at 9:00 AM)
   // -------------------------------------------------------------
-  cron.schedule("0 9 * * *", async () => {
-    console.log("CRON: Running daily product expiry check...");
+  const task1 = cron.schedule("0 9 * * *", async () => {
+    if (mongoose.connection?.readyState === 1 && process.env.NODE_ENV !== "test") {
+      try {
+        console.log("CRON: Running daily batch expiry check and multi-horizon alerts...");
+        const batchSummary = await processBatchExpiryChecks();
+        console.log("CRON: Batch expiry check summary:", batchSummary);
+      } catch (batchErr) {
+        console.error("CRON ERROR (Batch Expiry):", batchErr.message);
+      }
+    }
     const tomorrow = new Date();
     tomorrow.setDate(tomorrow.getDate() + 1);
     tomorrow.setHours(0, 0, 0, 0);
@@ -57,7 +81,7 @@ export const startCronJobs = () => {
   // -------------------------------------------------------------
   // Cron Job 2: Expiring Offers Alert for Nearby Users (Runs daily at 10:00 AM)
   // -------------------------------------------------------------
-  cron.schedule("0 10 * * *", async () => {
+  const task2 = cron.schedule("0 10 * * *", async () => {
     console.log("CRON: Checking active offers expiring in 24 hours...");
     const now = new Date();
     const next24Hours = new Date(Date.now() + 24 * 60 * 60 * 1000);
@@ -87,9 +111,12 @@ export const startCronJobs = () => {
 
               const notification = await Notification.create({
                 user: user._id,
+                title: "⏳ Expiring Offer Alert",
                 message: messageText,
                 type: "offer",
-                link: "/offers",
+                link: `/offers?offerId=${offer._id}`,
+                entityType: "offer",
+                entityId: offer._id,
               });
 
               if (io) {
@@ -112,16 +139,20 @@ export const startCronJobs = () => {
   // -------------------------------------------------------------
   // Cron Job 3: Auto-Deactivate Expired Offers & Products (Runs hourly)
   // -------------------------------------------------------------
-  cron.schedule("0 * * * *", async () => {
+  const task3 = cron.schedule("0 * * * *", async () => {
     try {
       const now = new Date();
       await Offer.updateMany({ expiresAt: { $lte: now }, isActive: true }, { isActive: false });
       await Product.updateMany({ expiryDate: { $lte: now }, isActive: true }, { isActive: false });
-      console.log("CRON: Auto-deactivated expired offers and products.");
+      if (mongoose.connection?.readyState === 1 && process.env.NODE_ENV !== "test") {
+        await processBatchExpiryChecks();
+      }
+      console.log("CRON: Auto-deactivated expired offers, products, and batches.");
     } catch (err) {
       console.error("CRON ERROR (Auto Deactivate Expired):", err.message);
     }
   });
 
+  activeCronTasks.push(task1, task2, task3);
   console.log("Cron jobs scheduled: Expiry Alerts (9:00 AM), Offer Reminders (10:00 AM), & Hourly Expired Deactivation");
 };

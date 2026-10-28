@@ -8,6 +8,11 @@ const notificationSchema = new mongoose.Schema(
       ref: "User", // The recipient user
       required: true,
     },
+    title: {
+      type: String,
+      trim: true,
+      default: "",
+    },
     message: {
       type: String,
       required: true,
@@ -18,9 +23,19 @@ const notificationSchema = new mongoose.Schema(
     },
     type: {
       type: String,
-      enum: ["offer", "order", "system", "expiry"],
+      enum: ["offer", "order", "system", "expiry", "OFFER", "ORDER", "SYSTEM", "EXPIRY"],
+      lowercase: true,
       default: "system",
     },  
+    entityType: {
+      type: String,
+      enum: ["order", "offer", "product", "system", ""],
+      default: "",
+    },
+    entityId: {
+      type: mongoose.Schema.Types.ObjectId,
+      default: null,
+    },
     link: {
       type: String,
       default: "", // Optional page route link to navigate when clicked
@@ -28,5 +43,8 @@ const notificationSchema = new mongoose.Schema(
   },
   { timestamps: true }
 );
+
+notificationSchema.index({ user: 1, createdAt: -1 });
+notificationSchema.index({ user: 1, isRead: 1 });
 
 export default mongoose.model("Notification", notificationSchema);

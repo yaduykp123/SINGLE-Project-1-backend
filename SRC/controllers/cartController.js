@@ -19,6 +19,9 @@ export const addToCart = async (req, res) => {
     if (!product.isActive || product.stock < 1) {
       return res.status(400).json({ message: "Product is out of stock" });
     }
+    if (new Date(product.expiryDate) <= new Date()) {
+      return res.status(400).json({ message: "Product has expired and cannot be added to cart" });
+    }
 
     let cart = await Cart.findOne({ user: userId });
     if (!cart) {
@@ -114,6 +117,9 @@ export const updateCartItem = async (req, res) => {
 
     const product = await Product.findById(item.product);
     if (!product) return res.status(404).json({ message: "Product not found" });
+    if (new Date(product.expiryDate) <= new Date()) {
+      return res.status(400).json({ message: "Product has expired and cannot be updated" });
+    }
 
     if (action === "increase") {
       if (item.quantity + 1 > product.stock) {

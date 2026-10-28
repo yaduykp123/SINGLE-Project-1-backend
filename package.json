@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-  "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js --coverage --runInBand",
+  "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js --coverage --runInBand --forceExit",
     "test:watch": "node --experimental-vm-modules node_modules/jest/bin/jest.js --watch --runInBand",
     "test:verbose": "node --experimental-vm-modules node_modules/jest/bin/jest.js --verbose --runInBand",
     "dev": "nodemon SRC/server.js",

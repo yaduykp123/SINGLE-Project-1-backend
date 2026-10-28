@@ -141,9 +141,12 @@ export const createOffer = asyncHandler( async (req, res) => {
         const messageText = `🔥 ${title} — ${discountPercentage}% OFF at ${shopOwner.fullName}!`;
         const notification = await Notification.create({
           user: targetUser._id,
+          title: "🔥 Special Discount Offer!",
           message: messageText,
           type: "offer",
-          link: `/offers`,
+          link: `/offers?offerId=${newOffer._id}`,
+          entityType: "offer",
+          entityId: newOffer._id,
         });
         if (io) io.to(targetUser._id.toString()).emit("new_notification", notification);
 
@@ -242,6 +245,16 @@ export const deleteOffer = asyncHandler(async (req, res) => {
   }
 
   await Offer.findByIdAndUpdate(req.params.id, { isActive: false });
+
+  try {
+    const io = getIo();
+    if (io) {
+      io.emit("offer_deleted", { offerId: req.params.id });
+    }
+  } catch (err) {
+    console.error("Socket error on offer deletion:", err.message);
+  }
+
   res.status(200).json({ success: true, message: "Offer deleted successfully" });
 });
 

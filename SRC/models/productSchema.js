@@ -12,7 +12,7 @@ const productSchema = new mongoose.Schema(
     category: {
       type: String,
       required: [true, "Category is required"],
-      enum: ["Grocery Items", "Fruits", "Vegetables", "Meat/Fish", "Dairy", "Other"],
+      enum: ["Grocery Items", "Fruits", "Vegetables", "Meat/Fish", "Dairy", "Bakery", "Other"],
     },
     marketPrice: {
       type: Number,
@@ -32,7 +32,7 @@ const productSchema = new mongoose.Schema(
     unit: {
       type: String,
       required: [true, "Unit is required"],
-      enum: ["kg", "g", "ltr", "ml", "units", "packs", "pieces", "pieces","tray","dozen","bunch","bottle","box","packet"],
+      enum: ["kg", "g", "ltr", "ml", "units", "packs", "pieces", "tray", "dozen", "bunch", "bottle", "box", "packet"],
     },
     stock: {
       type: Number,
@@ -40,7 +40,7 @@ const productSchema = new mongoose.Schema(
       min: 0,
       default: 1,
     },
-    image: { type: String, default: "https://via.placeholder.com/300?text=No+Image" },
+    image: { type: String, default: "" },
     expiryDate: {
       type: Date,
       required: [true, "Expiry date is required"],
@@ -60,6 +60,7 @@ const productSchema = new mongoose.Schema(
       type: { type: String, enum: ["Point"], default: "Point" },
       coordinates: { type: [Number], required: true },
     },
+    barcode: { type: String, trim: true, default: "", index: true },
     city: { type: String, default: "" },
     isActive: { type: Boolean, default: true },
   },
@@ -68,6 +69,8 @@ const productSchema = new mongoose.Schema(
 
 productSchema.index({ location: "2dsphere" });
 productSchema.index({ expiryDate: 1, isActive: 1 });
+productSchema.index({ isActive: 1, expiryDate: 1, category: 1, discountPrice: 1 });
+productSchema.index({ owner: 1, createdAt: -1 });
 
 // Virtual for discount percentage
 productSchema.virtual("discountPercent").get(function () {

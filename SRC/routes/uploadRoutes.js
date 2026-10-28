@@ -25,11 +25,30 @@ const router = express.Router();
 const storage = multer.memoryStorage();
 const upload = multer({ 
   storage,
-  limits: { fileSize: 5 * 1024 * 1024 } // 5MB limit
+  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB limit
+  fileFilter: (req, file, cb) => {
+    const allowedTypes = /jpeg|jpg|png|webp/;
+    const ext = path.extname(file.originalname).toLowerCase().replace(".", "");
+    const mime = file.mimetype;
+    if (allowedTypes.test(ext) && (mime.startsWith("image/") || allowedTypes.test(mime))) {
+      return cb(null, true);
+    }
+    return cb(new Error("Only JPG, JPEG, PNG, or WEBP image formats are allowed"));
+  }
 });
 
 // POST /api/upload - Handles uploading a single image (uses Cloudinary or local disk fallback)
-router.post("/", protect, upload.single("image"), async (req, res, next) => {
+router.post("/", protect, (req, res, next) => {
+  upload.single("image")(req, res, (err) => {
+    if (err) {
+      return res.status(400).json({
+        success: false,
+        message: err.message || "Invalid image upload request",
+      });
+    }
+    next();
+  });
+}, async (req, res) => {
   try {
     if (!req.file) {
       return res.status(400).json({
@@ -64,6 +83,7 @@ router.post("/", protect, upload.single("image"), async (req, res, next) => {
         success: true,
         message: "Image uploaded locally successfully!",
         imageUrl: fileUrl,
+        publicId: fileName,
       });
     }
 
@@ -80,15 +100,13 @@ router.post("/", protect, upload.single("image"), async (req, res, next) => {
       success: true,
       message: "Image uploaded successfully!",
       imageUrl: result.secure_url,
+      publicId: result.public_id,
     });
   } catch (error) {
-    console.warn("Cloudinary credentials missing or invalid. Falling back to default food image placeholder:", error.message);
-    
-    // Beginner-friendly fallback: return a mock image URL so testing remains successful
-    return res.status(200).json({
-      success: true,
-      message: "Uploaded successfully (Simulated using high-quality placeholder image)",
-      imageUrl: "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=500&auto=format&fit=crop&q=60",
+    console.error("[UPLOAD ERROR]", error.message);
+    return res.status(500).json({
+      success: false,
+      message: "Image upload failed: " + (error.message || "Unknown error"),
     });
   }
 });

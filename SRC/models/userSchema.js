@@ -84,7 +84,43 @@ const userSchema = new mongoose.Schema({
  
   resetPasswordOTPExpiry: {
     type: Date
-  }
+  },
+
+  // Saved Delivery Addresses
+  savedAddresses: [
+    {
+      label: {
+        type: String,
+        enum: ["Home", "Work", "Other"],
+        default: "Home",
+      },
+      name: { type: String, required: true },
+      phone: { type: String, required: true },
+      email: { type: String, required: true },
+      street: { type: String, required: true },
+      city: { type: String, required: true },
+      state: { type: String, required: true },
+      pincode: { type: String, required: true },
+      isDefault: { type: Boolean, default: false },
+    },
+  ],
+
+  // Customer Wishlist
+  wishlist: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Product",
+    },
+  ],
+
+  // Notification Preferences
+  notificationPreferences: {
+    orderUpdates: { type: Boolean, default: true },
+    expiryAlerts: { type: Boolean, default: true },
+    priceDropAlerts: { type: Boolean, default: true },
+    donationAlerts: { type: Boolean, default: true },
+    emailNotifications: { type: Boolean, default: true },
+  },
 
 },{timestamps:true});
 
